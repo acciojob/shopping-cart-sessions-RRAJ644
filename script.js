@@ -1,4 +1,3 @@
-// Product data
 const products = [
   { id: 1, name: "Product 1", price: 10 },
   { id: 2, name: "Product 2", price: 20 },
@@ -9,74 +8,95 @@ const products = [
 
 // DOM elements
 const productList = document.getElementById("product-list");
-const cartList = document.getElementById("cart-list");
-const clearCartBtn = document.getElementById("clear-cart-btn");
+const cartList = document.querySelector("#cart-list");
+const clearCarts = document.querySelector("#clear-cart-btn");
 
-// Retrieve cart from session storage (if any)
+
+clearCarts.addEventListener("click",clearCart);
+
+// Cart data in session storage
 let cart = JSON.parse(sessionStorage.getItem("cart")) || [];
 
 // Render product list
 function renderProducts() {
-  productList.innerHTML = '';
   products.forEach((product) => {
     const li = document.createElement("li");
     li.innerHTML = `${product.name} - $${product.price} <button class="add-to-cart-btn" data-id="${product.id}">Add to Cart</button>`;
     productList.appendChild(li);
   });
 
-  // Add event listeners to "Add to Cart" buttons
-  document.querySelectorAll(".add-to-cart-btn").forEach((button) => {
+  const addToCartButtons = document.querySelectorAll(".add-to-cart-btn");
+
+  //   console.log(addToCartButtons)
+  addToCartButtons.forEach((button) => {
     button.addEventListener("click", () => {
-      const productId = button.getAttribute("data-id");
-      addToCart(parseInt(productId));
+      const productId = parseInt(button.getAttribute("data-id"));
+      addToCart(productId);
     });
   });
 }
 
 // Render cart list
 function renderCart() {
-  cartList.innerHTML = '';
+  cartList.innerHTML = "";
+  // console.log(cart);
   cart.forEach((item) => {
     const li = document.createElement("li");
-    li.innerHTML = `${item.name} - $${item.price} <button class="remove-from-cart-btn" data-id="${item.id}">Remove</button>`;
-    cartList.appendChild(li);
-  });
+    const btn = document.createElement("button");
+    btn.innerText = "Remove Cart";
+    btn.className ="remove-cart";
+    btn.setAttribute("data-id", item.id);
+    const btns = document.querySelectorAll(".remove-cart")[0];
 
-  // Add event listeners to "Remove" buttons
-  document.querySelectorAll(".remove-from-cart-btn").forEach((button) => {
-    button.addEventListener("click", () => {
-      const productId = button.getAttribute("data-id");
-      removeFromCart(parseInt(productId));
-    });
+    // console.log(btns);
+    btn.addEventListener("click", () => {
+        const productId = parseInt(btn.getAttribute("data-id"));
+        removeFromCart(productId);
+      });
+    li.textContent = `${item.name}- \$${item.price}`;
+
+    cartList.append(li,btn);
   });
 }
 
 // Add item to cart
 function addToCart(productId) {
-  const product = products.find(p => p.id === productId);
-  if (product && !cart.some(item => item.id === productId)) {
-    cart.push(product);
-    sessionStorage.setItem("cart", JSON.stringify(cart)); // Save to session storage
-    renderCart();
-  }
+  const product = products.find((prod) => prod.id === productId);
+
+//   console.log(product);
+  cart.push({
+    id: product.id,
+    name: product.name,
+    price: product.price,
+  });
+
+  sessionStorage.setItem("cart", JSON.stringify(cart));
+
+  renderCart();
 }
 
 // Remove item from cart
 function removeFromCart(productId) {
-  cart = cart.filter(item => item.id !== productId);
-  sessionStorage.setItem("cart", JSON.stringify(cart)); // Save updated cart to session storage
-  renderCart();
+  
+   const index =  cart.findIndex((item)=>item.id === productId);
+
+   if(index !== -1){
+    cart.splice(index,1);
+
+    sessionStorage.setItem("cart",JSON.stringify(cart));
+
+    renderCart();
+   }
 }
 
 // Clear cart
 function clearCart() {
+
+
   cart = [];
-  sessionStorage.removeItem("cart"); // Remove cart from session storage
+  sessionStorage.removeItem("cart");
   renderCart();
 }
-
-// Attach event listener to clear cart button
-clearCartBtn.addEventListener("click", clearCart);
 
 // Initial render
 renderProducts();
